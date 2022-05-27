@@ -7,6 +7,7 @@ from codes.datasets import *
 from codes.networks import *
 from codes.inspection import eval_encoder_NN_multiK
 from codes.utils import *
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
@@ -16,6 +17,10 @@ parser.add_argument('--D', default=64, type=int)
 
 parser.add_argument('--epochs', default=300, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
+parser.add_argument('--do_eval', action='store_true')
+
+# if shot==0 that means all training data is used
+parser.add_argument('--shot', default=10, type=int)
 
 args = parser.parse_args()
 
@@ -24,6 +29,7 @@ def train():
     obj = args.obj
     D = args.D
     lr = args.lr
+    K_shot = args.shot
         
     with task('Networks'):
         enc = EncoderHier(64, D).cuda()
@@ -37,7 +43,7 @@ def train():
         opt = torch.optim.Adam(params=params, lr=lr)
 
     with task('Datasets'):
-        train_x = mvtecad.get_x_standardized(obj, mode='train')
+        train_x = mvtecad.get_x_standardized(obj, K_shot, mode='train')
         train_x = NHWC2NCHW(train_x)
 
         rep = 100
@@ -52,7 +58,7 @@ def train():
         loader = DataLoader(dataset, batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
 
     print('Start training')
-    for i_epoch in range(args.epochs):
+    for i_epoch in tqdm(range(args.epochs)):
         if i_epoch != 0:
             for module in modules:
                 module.train()
@@ -71,9 +77,11 @@ def train():
                 loss.backward()
                 opt.step()
 
-        aurocs = eval_encoder_NN_multiK(enc, obj)
-        log_result(obj, aurocs)
-        enc.save(obj)
+        if args.do_eval and i_epoch%10 == 0:
+            aurocs = eval_encoder_NN_multiK(enc, obj, K_shot)
+            log_result(obj, aurocs)
+
+        enc.save(obj, K_shot)
 
 
 def log_result(obj, aurocs):
@@ -90,7 +98,6 @@ def log_result(obj, aurocs):
     seg_mult = aurocs['seg_mult'] * 100
 
     print(f'|K64| Det: {det_64:4.1f} Seg: {seg_64:4.1f} |K32| Det: {det_32:4.1f} Seg: {seg_32:4.1f} |mult| Det: {det_sum:4.1f} Seg: {seg_sum:4.1f} |mult| Det: {det_mult:4.1f} Seg: {seg_mult:4.1f} ({obj})')
-
 
 if __name__ == '__main__':
     train()

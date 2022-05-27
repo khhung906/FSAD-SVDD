@@ -29,20 +29,22 @@ def assess_anomaly_maps(obj, anomaly_maps):
     auroc_seg = mvtecad.segmentation_auroc(obj, anomaly_maps)
 
     anomaly_scores = anomaly_maps.max(axis=-1).max(axis=-1)
+    # anomaly_scores = np.mean(anomaly_maps, axis=(1, 2)) 
     auroc_det = mvtecad.detection_auroc(obj, anomaly_scores)
     return auroc_det, auroc_seg
 
 
 #########################
 
-def eval_encoder_NN_multiK(enc, obj):
-    x_tr = mvtecad.get_x_standardized(obj, mode='train')
+def eval_encoder_NN_multiK(enc, obj, K_shot, NN):
+    x_tr = mvtecad.get_x_standardized(obj, K_shot=K_shot, mode='train')
     x_te = mvtecad.get_x_standardized(obj, mode='test')
+    # print(x_tr.shape, x_te.shape)
 
     embs64_tr = infer(x_tr, enc, K=64, S=16)
     embs64_te = infer(x_te, enc, K=64, S=16)
 
-    x_tr = mvtecad.get_x_standardized(obj, mode='train')
+    x_tr = mvtecad.get_x_standardized(obj, K_shot=K_shot, mode='train')
     x_te = mvtecad.get_x_standardized(obj, mode='test')
 
     embs32_tr = infer(x_tr, enc.enc, K=32, S=4)
@@ -51,7 +53,7 @@ def eval_encoder_NN_multiK(enc, obj):
     embs64 = embs64_tr, embs64_te
     embs32 = embs32_tr, embs32_te
 
-    return eval_embeddings_NN_multiK(obj, embs64, embs32)
+    return eval_embeddings_NN_multiK(obj, embs64, embs32, NN)
 
 
 def eval_embeddings_NN_multiK(obj, embs64, embs32, NN=1):

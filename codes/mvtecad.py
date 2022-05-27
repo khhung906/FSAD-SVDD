@@ -5,7 +5,7 @@ from glob import glob
 from sklearn.metrics import roc_auc_score
 import os
 
-DATASET_PATH = '/path/to/the/dataset'
+DATASET_PATH = '../data/MVTec'
 
 
 __all__ = ['objs', 'set_root_path',
@@ -45,7 +45,7 @@ def set_root_path(new_path):
     DATASET_PATH = new_path
 
 
-def get_x(obj, mode='train'):
+def get_x(obj, K_shot=10, mode='train'):
     fpattern = os.path.join(DATASET_PATH, f'{obj}/{mode}/*/*.png')
     fpaths = sorted(glob(fpattern))
 
@@ -64,11 +64,16 @@ def get_x(obj, mode='train'):
         images = gray2rgb(images)
     images = list(map(resize, images))
     images = np.asarray(images)
+
+    # if k_shot == -1 use all the training data
+    if mode=='train' and K_shot != -1:
+        images = images[:K_shot]
+
     return images
 
 
-def get_x_standardized(obj, mode='train'):
-    x = get_x(obj, mode=mode)
+def get_x_standardized(obj, K_shot=10, mode='train'):
+    x = get_x(obj, K_shot=K_shot, mode=mode)
     mean = get_mean(obj)
     return (x.astype(np.float32) - mean) / 255
 
@@ -104,6 +109,7 @@ def get_mask(obj):
 def get_mean(obj):
     images = get_x(obj, mode='train')
     mean = images.astype(np.float32).mean(axis=0)
+
     return mean
 
 

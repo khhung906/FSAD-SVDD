@@ -7,6 +7,7 @@ from codes.utils import resize, makedirpath
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--obj', default='wood')
+parser.add_argument('--shot', default=10, type=int)
 args = parser.parse_args()
 
 
@@ -45,11 +46,12 @@ def main():
     from codes.networks import EncoderHier
 
     obj = args.obj
+    K_shot = args.shot
 
     enc = EncoderHier(K=64, D=64).cuda()
-    enc.load(obj)
+    enc.load(obj, K_shot)
     enc.eval()
-    results = eval_encoder_NN_multiK(enc, obj)
+    results = eval_encoder_NN_multiK(enc, obj, K_shot)
     maps = results['maps_mult']
 
     save_maps(obj, maps)

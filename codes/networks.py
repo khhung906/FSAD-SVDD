@@ -37,18 +37,18 @@ class Encoder(nn.Module):
 
         return h
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
+    def save(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         makedirpath(fpath)
         torch.save(self.state_dict(), fpath)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
+    def load(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         self.load_state_dict(torch.load(fpath))
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/encoder_nohier.pkl'
+    def fpath_from_name(name, shot):
+        return f'ckpts/{name}/encoder_nohier_{shot}.pkl'
 
 
 def forward_hier(x, emb_small, K):
@@ -115,18 +115,18 @@ class EncoderDeep(nn.Module):
 
         return h
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
+    def save(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         makedirpath(fpath)
         torch.save(self.state_dict(), fpath)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
+    def load(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         self.load_state_dict(torch.load(fpath))
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/encdeep.pkl'
+    def fpath_from_name(name, shot):
+        return f'ckpts/{name}/encdeep_{shot}.pkl'
 
 
 class EncoderHier(nn.Module):
@@ -159,19 +159,18 @@ class EncoderHier(nn.Module):
 
         return h
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
+    def save(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         makedirpath(fpath)
         torch.save(self.state_dict(), fpath)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
+    def load(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         self.load_state_dict(torch.load(fpath))
 
     @staticmethod
-    def fpath_from_name(name):
-        return f'ckpts/{name}/enchier.pkl'
-
+    def fpath_from_name(name, shot):
+        return f'ckpts/{name}/enchier_{shot}.pkl'
 
 ################
 
@@ -226,17 +225,18 @@ class PositionClassifier(nn.Module):
 
         self.K = K
 
-    def save(self, name):
-        fpath = self.fpath_from_name(name)
+    def save(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         makedirpath(fpath)
         torch.save(self.state_dict(), fpath)
 
-    def load(self, name):
-        fpath = self.fpath_from_name(name)
+    def load(self, name, shot):
+        fpath = self.fpath_from_name(name, shot)
         self.load_state_dict(torch.load(fpath))
 
-    def fpath_from_name(self, name):
-        return f'ckpts/{name}/position_classifier_K{self.K}.pkl'
+    @staticmethod
+    def fpath_from_name(name, shot):
+        return f'ckpts/{name}/position_classifier_K_{shot}.pkl'
 
     @staticmethod
     def infer(c, enc, batch):
